@@ -15,17 +15,23 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
-   private val _state = MutableStateFlow(LoginUiState())
-    val state : StateFlow<LoginUiState> = _state
+    private val _state = MutableStateFlow(LoginUiState())
+    val state: StateFlow<LoginUiState> = _state
 
     private val _effect = MutableSharedFlow<LoginUiEffect>() // Altera para SharedFlow
     val effect: SharedFlow<LoginUiEffect> = _effect
+
+    private val validCredentials = UserLogin("admin", "123")
 
     fun onEvent(event: LoginUiEvent) {
         when (event) {
             is LoginUiEvent.OnLoginClicked -> {
                 if (validateCredentials(event.user)) {
-                    onAction(LoginUiAction.OnLoginSuccess(user = event.user))
+                    if (event.user == validCredentials) {
+                        onAction(LoginUiAction.OnLoginSuccess(user = event.user))
+                    } else {
+                        onAction(LoginUiAction.OnLoginError("Invalid username or password !"))
+                    }
                 } else {
                     onAction(LoginUiAction.OnLoginError("Fill all the fields !"))
                 }
@@ -36,9 +42,12 @@ class LoginViewModel : ViewModel() {
     private fun onAction(action: LoginUiAction) {
         when (action) {
             is LoginUiAction.OnLoginError -> {
-                sendEffect(LoginUiEffect.ShowError("Fill all the fields !"))
+                sendEffect(LoginUiEffect.ShowError(action.message))
             }
-            is LoginUiAction.OnLoginSuccess -> {sendEffect(LoginUiEffect.NavigateToHome(action.user))}
+
+            is LoginUiAction.OnLoginSuccess -> {
+                sendEffect(LoginUiEffect.NavigateToHome(action.user))
+            }
         }
     }
 
