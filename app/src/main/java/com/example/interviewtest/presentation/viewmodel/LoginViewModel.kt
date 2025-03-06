@@ -25,7 +25,7 @@ class LoginViewModel : ViewModel() {
     val state: StateFlow<LoginUiState> = _state
 
     // Emits one-time UI events such as navigation or showing error messages
-    private val _effect = MutableSharedFlow<LoginUiEffect>() // Altera para SharedFlow
+    private val _effect = MutableSharedFlow<LoginUiEffect>()
     val effect: SharedFlow<LoginUiEffect> = _effect
 
     // Hardcoded valid credentials for login validation
