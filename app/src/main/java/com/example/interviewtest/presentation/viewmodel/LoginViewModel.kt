@@ -1,73 +1,56 @@
 package com.example.interviewtest.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.interviewtest.presentation.model.LoginUiAction
 import com.example.interviewtest.presentation.model.LoginUiEffect
 import com.example.interviewtest.presentation.model.LoginUiEvent
 import com.example.interviewtest.presentation.model.LoginUiState
 import com.example.interviewtest.presentation.model.UserLogin
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
-   private val _state = MutableStateFlow<LoginUiState>(LoginUiState())
+   private val _state = MutableStateFlow(LoginUiState())
     val state : StateFlow<LoginUiState> = _state
 
-    private val _effect = MutableStateFlow<LoginUiEffect>(LoginUiEffect.InitialState)
-    val effect : StateFlow<LoginUiEffect> = _effect
+    private val _effect = MutableSharedFlow<LoginUiEffect>() // Altera para SharedFlow
+    val effect: SharedFlow<LoginUiEffect> = _effect
 
     fun onEvent(event: LoginUiEvent) {
         when (event) {
             is LoginUiEvent.OnLoginClicked -> {
                 if (validateCredentials(event.user)) {
-                    onAction(LoginUiAction.OnLoginClicked(user = event.user))
+                    onAction(LoginUiAction.OnLoginSuccess(user = event.user))
                 } else {
                     onAction(LoginUiAction.OnLoginError("Fill all the fields !"))
                 }
-            }
-
-            is LoginUiEvent.OnLoginError -> {
-                TODO()
-            }
-
-            is LoginUiEvent.OnLoginFailed -> {
-                TODO()
-            }
-
-            is LoginUiEvent.OnLoginLoading -> {
-                TODO()
-            }
-
-            is LoginUiEvent.OnLoginSuccess -> {
-                TODO()
             }
         }
     }
 
     private fun onAction(action: LoginUiAction) {
         when (action) {
-            is LoginUiAction.OnLoginClicked -> {
-                if (validateCredentials(action.user)) {
-                    _effect.value = LoginUiEffect.NavigateToHome(action.user)
-                } else {
-                    _effect.value = LoginUiEffect.ShowError("Fill all the fields !")
-                }
-            }
-
             is LoginUiAction.OnLoginError -> {
-                TODO()
+                sendEffect(LoginUiEffect.ShowError("Fill all the fields !"))
             }
-
-            is LoginUiAction.OnLoginFailed -> TODO()
-            is LoginUiAction.OnLoginLoading -> TODO()
-            is LoginUiAction.OnLoginSuccess -> TODO()
+            is LoginUiAction.OnLoginSuccess -> {sendEffect(LoginUiEffect.NavigateToHome(action.user))}
         }
     }
 
     //Implement validation to ensure that both username and password fields are not empty.
     private fun validateCredentials(user: UserLogin): Boolean {
         return user.userName.orEmpty().isNotEmpty() && user.userPassword.orEmpty().isNotEmpty()
+    }
+
+    private fun sendEffect(effect: LoginUiEffect) {
+        viewModelScope.launch {
+            _effect.emit(effect) // Garante que o evento seja emitido corretamente
+        }
     }
 
 }
