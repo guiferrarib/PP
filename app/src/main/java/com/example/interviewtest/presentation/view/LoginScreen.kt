@@ -35,19 +35,23 @@ import com.example.interviewtest.presentation.model.LoginUiEvent
 import com.example.interviewtest.presentation.model.UserLogin
 import com.example.interviewtest.presentation.viewmodel.LoginViewModel
 import kotlinx.coroutines.flow.collectLatest
-
+/**
+ * Composable function for the Login screen.
+ * Provides input fields for username and password, and a login button.
+ */
 @Composable
 fun LoginScreen() {
     val userEmail = remember { mutableStateOf("") }
     val userPassword = remember { mutableStateOf("") }
     val context = LocalContext.current
-
+    // Obtain ViewModel instance
     val viewModel = ViewModelProvider.AndroidViewModelFactory
         .getInstance(context.applicationContext as Application)
         .create(LoginViewModel::class.java)
 
     var errorMessage by remember { mutableStateOf("") }
 
+    // Collect UI effects such as navigation or error messages
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
@@ -73,6 +77,7 @@ fun LoginScreen() {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth(0.85f)
             ) {
+                // Username input field
                 TextField(
                     value = userEmail.value,
                     onValueChange = { userEmail.value = it },
@@ -80,6 +85,7 @@ fun LoginScreen() {
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage.isNotEmpty()
                 )
+                // Password input field
                 TextField(
                     value = userPassword.value,
                     onValueChange = { userPassword.value = it },
@@ -87,9 +93,11 @@ fun LoginScreen() {
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage.isNotEmpty()
                 )
+                // Error message display
                 if (errorMessage.isNotEmpty()) {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
+                // Login button
                 Button(
                     onClick = {
                         errorMessage = ""
