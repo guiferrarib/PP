@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -22,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -43,26 +46,16 @@ fun LoginScreen() {
         .getInstance(context.applicationContext as Application)
         .create(LoginViewModel::class.java)
 
-    val state by viewModel.state.collectAsState()
-    val effect by viewModel.effect.collectAsState(LoginUiEffect.InitialState)
+    var errorMessage by remember { mutableStateOf("") }
 
-    LaunchedEffect(effect) {
+    LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
-                is LoginUiEffect.InitialState -> {
-                    // Do nothing
-                }
-
                 is LoginUiEffect.NavigateToHome -> {
                     Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                 }
-
                 is LoginUiEffect.ShowError -> {
-                    Toast.makeText(
-                        context,
-                        "Error: ${(effect as LoginUiEffect.ShowError).message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    errorMessage = effect.message
                 }
             }
         }
@@ -73,27 +66,33 @@ fun LoginScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentAlignment = Alignment.Center // Mantém tudo centralizado
+            contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth(0.85f)
             ) {
                 TextField(
                     value = userEmail.value,
                     onValueChange = { userEmail.value = it },
-                    label = { Text("Email") }
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorMessage.isNotEmpty()
                 )
-                Spacer(modifier = Modifier.padding(8.dp))
                 TextField(
                     value = userPassword.value,
                     onValueChange = { userPassword.value = it },
-                    label = { Text("Password") }
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorMessage.isNotEmpty()
                 )
-                Spacer(modifier = Modifier.padding(8.dp))
+                if (errorMessage.isNotEmpty()) {
+                    Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+                }
                 Button(
                     onClick = {
+                        errorMessage = ""
                         viewModel.onEvent(
                             LoginUiEvent.OnLoginClicked(
                                 UserLogin(
@@ -103,6 +102,7 @@ fun LoginScreen() {
                             )
                         )
                     },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Login")
                 }
