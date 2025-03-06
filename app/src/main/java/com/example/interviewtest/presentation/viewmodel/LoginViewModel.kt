@@ -76,7 +76,7 @@ class LoginViewModel : ViewModel() {
      */
     private fun sendEffect(effect: LoginUiEffect) {
         viewModelScope.launch {
-            _effect.emit(effect) // Garante que o evento seja emitido corretamente
+            _effect.emit(effect)
         }
     }
 
